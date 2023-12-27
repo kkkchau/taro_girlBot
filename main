@@ -1,0 +1,32 @@
+import telebot
+from telebot import types
+from gen_predict import TarotDeck, TarotPrediction
+
+token = "token"
+bot = telebot.TeleBot(token)
+
+@bot.message_handler(commands=['start'])
+def start_message(message):
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    btn1 = types.KeyboardButton("Общее")
+    btn2 = types.KeyboardButton("Здоровье")
+    btn3 = types.KeyboardButton("Прошлое, настоящее, будущее")
+    btn4 = types.KeyboardButton("Любовь")
+    btn5 = types.KeyboardButton("Карьера, деньги")
+    markup.add(btn1, btn2, btn3, btn4, btn5)
+    bot.send_message(message.chat.id, "Привет, {0.first_name}! Таро подружка приветствует тебя! Выбери, какой раскладик ты хочешь?".format(message.from_user), reply_markup=markup)
+
+@bot.message_handler(content_types=['text'])
+def func(message):
+    tarot_deck = TarotDeck(message.text)
+    tarot_prediction = TarotPrediction(message.text)
+    
+    if tarot_deck.choose_category() is not None:
+        tarot_deck.choose_category()
+        tarot_prediction.random_cards()
+        bot.send_message(message.chat.id, text=tarot_prediction.write_names())
+        bot.send_message(message.chat.id, text=tarot_prediction.make_pred())
+    else:
+        bot.send_message(message.chat.id, "Ты точно хочешь раскладик?")
+
+bot.polling(none_stop=True)
